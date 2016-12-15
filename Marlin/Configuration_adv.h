@@ -74,8 +74,8 @@
  * If you get false positives for "Thermal Runaway" increase THERMAL_PROTECTION_HYSTERESIS and/or THERMAL_PROTECTION_PERIOD
  */
 #if ENABLED(THERMAL_PROTECTION_HOTENDS)
-  #define THERMAL_PROTECTION_PERIOD 40        // Seconds
-  #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
+  #define THERMAL_PROTECTION_PERIOD 50        // Seconds
+  #define THERMAL_PROTECTION_HYSTERESIS 5     // Degrees Celsius
 
   /**
    * Whenever an M104 or M109 increases the target temperature the firmware will wait for the
@@ -87,7 +87,7 @@
    * WATCH_TEMP_INCREASE should not be below 2.
    */
   #define WATCH_TEMP_PERIOD 20                // Seconds
-  #define WATCH_TEMP_INCREASE 2               // Degrees Celsius
+  #define WATCH_TEMP_INCREASE 5               // Degrees Celsius
 #endif
 
 /**
@@ -130,7 +130,7 @@
  * Also, if the temperature is set to a value below mintemp, it will not be changed by autotemp.
  * On an Ultimaker, some initial testing worked with M109 S215 B260 F1 in the start.gcode
  */
-#define AUTOTEMP
+//#define AUTOTEMP
 #if ENABLED(AUTOTEMP)
   #define AUTOTEMP_OLDWEIGHT 0.98
 #endif
@@ -217,8 +217,8 @@
  * Multiple extruders can be assigned to the same pin in which case
  * the fan will turn on when any selected extruder is above the threshold.
  */
-#define E0_AUTO_FAN_PIN -1
-#define E1_AUTO_FAN_PIN -1
+#define E0_AUTO_FAN_PIN 4
+#define E1_AUTO_FAN_PIN 4
 #define E2_AUTO_FAN_PIN -1
 #define E3_AUTO_FAN_PIN -1
 #define EXTRUDER_AUTO_FAN_TEMPERATURE 50
@@ -333,12 +333,12 @@
 //homing hits the endstop, then retracts by this distance, before it tries to slowly bump again:
 #define X_HOME_BUMP_MM 5
 #define Y_HOME_BUMP_MM 5
-#define Z_HOME_BUMP_MM 2
+#define Z_HOME_BUMP_MM 5
 #define HOMING_BUMP_DIVISOR {2, 2, 4}  // Re-Bump Speed Divisor (Divides the Homing Feedrate)
-//#define QUICK_HOME  //if this is defined, if both x and y are to be homed, a diagonal move will be performed initially.
+#define QUICK_HOME  //if this is defined, if both x and y are to be homed, a diagonal move will be performed initially.
 
 // When G28 is called, this option will make Y home before X
-//#define HOME_Y_BEFORE_X
+#define HOME_Y_BEFORE_X
 
 // @section machine
 
@@ -356,7 +356,7 @@
 // Default stepper release if idle. Set to 0 to deactivate.
 // Steppers will shut down DEFAULT_STEPPER_DEACTIVE_TIME seconds after the last move when DISABLE_INACTIVE_? is true.
 // Time can be set by M18 and M84.
-#define DEFAULT_STEPPER_DEACTIVE_TIME 120
+#define DEFAULT_STEPPER_DEACTIVE_TIME 3600
 #define DISABLE_INACTIVE_X true
 #define DISABLE_INACTIVE_Y true
 #define DISABLE_INACTIVE_Z true  // set to false if the nozzle will fall down on your printed part when print has finished.
@@ -516,12 +516,42 @@
 // Babystepping enables the user to control the axis in tiny amounts, independently from the normal printing process
 // it can e.g. be used to change z-positions in the print startup phase in real-time
 // does not respect endstops!
-//#define BABYSTEPPING
+#define BABYSTEPPING
 #if ENABLED(BABYSTEPPING)
-  #define BABYSTEP_XY  //not only z, but also XY in the menu. more clutter, more functions
+  //#define BABYSTEP_XY  //not only z, but also XY in the menu. more clutter, more functions
                        //not implemented for deltabots!
   #define BABYSTEP_INVERT_Z false  //true for inverse movements in Z
-  #define BABYSTEP_MULTIPLICATOR 1 //faster movements
+  #define BABYSTEP_MULTIPLICATOR  Z_AXIS_STEPS_PER_UNIT / 10 //0.1mm
+#endif
+
+//
+// Ensure Smooth Moves
+//
+// Enable this option to prevent the machine from stuttering when printing multiple short segments.
+// This feature uses two strategies to eliminate stuttering:
+//
+// 1. During short segments a Graphical LCD update may take so much time that the planner buffer gets
+//    completely drained. When this happens pauses are introduced between short segments, and print moves
+//    will become jerky until a longer segment provides enough time for the buffer to be filled again.
+//    This jerkiness negatively affects print quality. The ENSURE_SMOOTH_MOVES option addresses the issue
+//    by pausing the LCD until there's enough time to safely update.
+//
+//    NOTE: This will cause the Info Screen to lag and controller buttons may become unresponsive.
+//          Enable ALWAYS_ALLOW_MENU to keep the controller responsive.
+//
+// 2. No block is allowed to take less time than MIN_BLOCK_TIME. That's the time it takes in the main
+//    loop to add a new block to the buffer, check temperatures, etc., including all blocked time due to
+//    interrupts (without LCD update). By enforcing a minimum time-per-move, the buffer is prevented from
+//    draining.
+//
+//#define ENSURE_SMOOTH_MOVES
+#if ENABLED(ENSURE_SMOOTH_MOVES)
+  //#define ALWAYS_ALLOW_MENU      // If enabled, the menu will always be responsive.
+                                   // WARNING: Menu navigation during short moves may cause stuttering!
+  #define LCD_UPDATE_THRESHOLD 135 // (ms) Minimum duration for the current segment to allow an LCD update.
+                                   // Default value is good for graphical LCDs (e.g., REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER).
+                                   // You may try to lower this value until you printer starts stuttering again as if ENSURE_SMOOTH_MOVES is disabled.
+  #define MIN_BLOCK_TIME 6         // (ms) Minimum duration of a single block. You shouldn't need to modify this.
 #endif
 
 // @section extruder
@@ -575,7 +605,7 @@
 // @section extras
 
 // Arc interpretation settings:
-#define ARC_SUPPORT  // Disabling this saves ~2738 bytes
+//#define ARC_SUPPORT  // Disabling this saves ~2738 bytes
 #define MM_PER_ARC_SEGMENT 1
 #define N_ARC_CORRECTION 25
 
@@ -589,7 +619,7 @@
 #endif
 
 // Moves (or segments) with fewer steps than this will be joined with the next move
-#define MIN_STEPS_PER_SEGMENT 6
+#define MIN_STEPS_PER_SEGMENT 5
 
 // The minimum pulse width (in µs) for stepping a stepper.
 // Set this if you find stepping unreliable, or if using a very fast CPU.

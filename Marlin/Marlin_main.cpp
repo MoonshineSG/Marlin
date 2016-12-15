@@ -932,6 +932,47 @@ void servo_init() {
   #endif
 }
 
+//=============================
+// BabyStepping !!!!!!!!
+//=============================
+
+#if ENABLED(BABYSTEPPING)
+  bool babystep_switch_up = false;           // on/off boolean switch for baby up step commando's
+  bool babystep_switch_down = false;         // on/off boolean switch for baby down step commando's
+
+  bool allow_baby_stepping = true;
+  
+  void setup_babystep_pins() {
+      #if defined (BABYSTEP_UP_PIN) && (BABYSTEP_UP_PIN > -1)
+  	    SET_INPUT(BABYSTEP_UP_PIN);
+  	    //WRITE(BABYSTEP_UP_PIN, HIGH);
+      #endif
+      #if defined (BABYSTEP_DOWN_PIN) && (BABYSTEP_DOWN_PIN > -1)
+        SET_INPUT(BABYSTEP_DOWN_PIN);
+        //WRITE(BABYSTEP_DOWN_PIN, HIGH);
+      #endif
+  }
+
+  void babystep_update() {
+    if ((READ(BABYSTEP_UP_PIN) == 0) && (babystep_switch_up == false)) {
+      thermalManager.babystepsTodo[Z_AXIS]+=BABYSTEP_MULTIPLICATOR;
+      babystep_switch_up = true;
+      SERIAL_ECHOLN("//action:baby_up");
+    }
+    if ((READ(BABYSTEP_UP_PIN) == 1) && (babystep_switch_up == true)) {
+      babystep_switch_up = false;
+    }
+    if ((READ(BABYSTEP_DOWN_PIN) == 0) && (babystep_switch_down == false)) {
+      thermalManager.babystepsTodo[Z_AXIS]-=BABYSTEP_MULTIPLICATOR;
+      babystep_switch_down = true;
+      SERIAL_ECHOLN("//action:baby_down");
+    }
+    if ((READ(BABYSTEP_DOWN_PIN) == 1) && (babystep_switch_down == true)) {
+      babystep_switch_down = false;
+    }
+  }
+#endif //BABYSTEPPING
+
 /**
  * Stepper Reset (RigidBoard, et.al.)
  */
@@ -3648,6 +3689,11 @@ inline void gcode_G28() {
   #endif
 
   report_current_position();
+
+#if ENABLED(BABYSTEPPING)
+  allow_baby_stepping = true;
+#endif
+
 }
 
 #if HAS_PROBING_PROCEDURE
@@ -7576,6 +7622,101 @@ inline void gcode_M907() {
 
 #endif // MIXING_EXTRUDER
 
+
+/**
+* M808: send action message
+*/
+inline void gcode_M808() {
+  stepper.synchronize();
+  refresh_cmd_timeout();
+  SERIAL_PROTOCOLPGM("//action:");
+  SERIAL_PROTOCOLLN(current_command_args);
+}    
+
+
+inline void gcode_M888() {
+    
+	if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS] || !axis_known_position[Z_AXIS] ) {
+	    SERIAL_ECHO("Unknown position : [");
+		if (!axis_known_position[X_AXIS]) SERIAL_CHAR("x");
+		if (!axis_known_position[Y_AXIS]) SERIAL_CHAR("y");
+        if (!axis_known_position[Z_AXIS]) SERIAL_CHAR("z");
+	    SERIAL_ECHOLN("]");
+	} else {
+		SERIAL_ECHOLN("All axes are known.");
+	}
+
+	if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS] ) {
+	    SERIAL_ECHO("Axes needing home : [");
+		if (!axis_homed[X_AXIS]) SERIAL_CHAR("x");
+		if (!axis_homed[Y_AXIS]) SERIAL_CHAR("y");
+        if (!axis_homed[Z_AXIS]) SERIAL_CHAR("z");
+	    SERIAL_ECHOLN("]");
+	} else {
+		SERIAL_ECHOLN("All axes are homed.");
+	}
+
+  /**planner.bed_level_matrix.debug("\nCurrent bed level matix");
+    
+	bool z_ok = false;
+	if ( planner.bed_level_matrix.matrix[0] != 1 || planner.bed_level_matrix.matrix[4] != 1 || planner.bed_level_matrix.matrix[8] != 1 ||
+		planner.bed_level_matrix.matrix[1] != 0 || planner.bed_level_matrix.matrix[2] != 0 || planner.bed_level_matrix.matrix[3] != 0 ||
+	planner.bed_level_matrix.matrix[5] != 0 || planner.bed_level_matrix.matrix[6] != 0 || planner.bed_level_matrix.matrix[7] != 0 ) {
+		z_ok = true;
+	} 
+
+    if (!z_ok) {
+      SERIAL_ECHOLN("bed leveling needed.");
+      if (code_seen('E')) {
+        enqueue_and_echo_commands_P(PSTR("G28\nG29 P3 V4 T"));
+      }
+    }
+   */ 
+}  
+
+/*
+M889 - turn off everyting
+M889 C1|C0 turn cooling fan on/off
+M889 S1|S0 turn off everyting and cooling fan on/off
+*/
+inline void gcode_M889() {
+  SERIAL_ECHO_START;
+  
+  if (! code_seen('C') ) {
+    SERIAL_ECHOLN("Shuting all heaters, fans and motors. ");
+    thermalManager.disable_all_heaters();
+    enqueue_and_echo_commands_P(PSTR("M18"));
+  
+    #if FAN_COUNT > 0
+      #if FAN_COUNT > 1
+        for (uint8_t i = 0; i < FAN_COUNT; i++) fanSpeeds[i] = 0;
+      #else
+        fanSpeeds[0] = 0;
+      #endif
+    #endif  
+  } 
+  if ( code_seen('C') || code_seen('S')) {
+    SERIAL_ECHO("Cooling fan ");
+    pinMode(COOLER_FAN_PIN, OUTPUT);
+    if ( code_value_bool() ) {
+      SERIAL_ECHO("on");
+      digitalWrite(COOLER_FAN_PIN, 255);
+    } else {
+      SERIAL_ECHO("off");
+      digitalWrite(COOLER_FAN_PIN, 0);
+    }
+  }
+  SERIAL_EOL;
+}
+
+inline void gcode_M988() {
+  if (strchr(current_command_args, '1') != NULL) { //has an '1' parameter
+    allow_baby_stepping = true;
+  } else {
+    allow_baby_stepping = false;
+  }
+}    
+
 /**
  * M999: Restart after being stopped
  *
@@ -7945,6 +8086,10 @@ inline void gcode_T(uint8_t tmp_extruder) {
       SERIAL_ECHOLNPGM("<<< gcode_T");
     }
   #endif
+    
+	SERIAL_ECHOPAIR("//action:tool ", active_extruder);
+  SERIAL_EOL;
+  	
 }
 
 /**
@@ -7981,9 +8126,9 @@ void process_next_command() {
   while (*cmd_ptr == ' ') cmd_ptr++;
 
   // Allow for decimal point in command
-  #if ENABLED(G38_PROBE_TARGET)
+  //#if ENABLED(G38_PROBE_TARGET)
     uint8_t subcode = 0;
-  #endif
+  //#endif
 
   uint16_t codenum = 0; // define ahead of goto
 
@@ -7998,13 +8143,13 @@ void process_next_command() {
   } while (NUMERIC(*cmd_ptr));
 
   // Allow for decimal point in command
-  #if ENABLED(G38_PROBE_TARGET)
+  //#if ENABLED(G38_PROBE_TARGET)
     if (*cmd_ptr == '.') {
       cmd_ptr++;
       while (NUMERIC(*cmd_ptr))
         subcode = (subcode * 10) + (*cmd_ptr++ - '0');
     }
-  #endif
+  //#endif
 
   // Skip all spaces to get to the first argument, or nul
   while (*cmd_ptr == ' ') cmd_ptr++;
@@ -8078,11 +8223,42 @@ void process_next_command() {
       #endif // NOZZLE_PARK_FEATURE
 
       case 28: // G28: Home all axes, one at a time
+        if (subcode == 2) {
+        	if (axis_known_position[X_AXIS] && axis_known_position[Y_AXIS] && axis_known_position[Z_AXIS] ) {
+        	    SERIAL_ECHOLN("All axes are known. There's no need to home.");
+              break;
+        	}
+        }
         gcode_G28();
         break;
 
       #if PLANNER_LEVELING
         case 29: // G29 Detailed Z probe, probes the bed at 3 or more points.
+          if (subcode == 2) {
+            #if ENABLED(AUTO_BED_LEVELING_LINEAR) || ENABLED(AUTO_BED_LEVELING_3POINT)
+                if ( planner.bed_level_matrix.matrix[0] != 1 || planner.bed_level_matrix.matrix[4] != 1 || planner.bed_level_matrix.matrix[8] != 1 ||
+                  planner.bed_level_matrix.matrix[1] != 0 || planner.bed_level_matrix.matrix[2] != 0 || planner.bed_level_matrix.matrix[3] != 0 ||
+                planner.bed_level_matrix.matrix[5] != 0 || planner.bed_level_matrix.matrix[6] != 0 || planner.bed_level_matrix.matrix[7] != 0 ) 
+                {
+                  planner.bed_level_matrix.debug("Current bed level matix");
+                  break;
+              	} 
+            #endif
+            #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+              bool G29_not_needed = false;
+              for (uint8_t x = 0; x < ABL_GRID_POINTS_X; x++) {
+                for (uint8_t y = 0; y < ABL_GRID_POINTS_Y; y++) {
+                  //SERIAL_ECHOLN(bed_level_grid[x][y]);
+                  if ( bed_level_grid[x][y] != 0 and bed_level_grid[x][y] != 1000.0 ) G29_not_needed = true;
+                }
+              }
+              if (G29_not_needed) {
+                  print_bed_level();
+                  SERIAL_ECHOLN("Bed geometry known.");
+                  break;
+              }
+            #endif  
+          }
           gcode_G29();
           break;
       #endif // PLANNER_LEVELING
@@ -8669,6 +8845,24 @@ void process_next_command() {
       case 999: // M999: Restart after being Stopped
         gcode_M999();
         break;
+
+      case 808: //M808: send custom actions
+        gcode_M808();
+        break;
+
+      case 888: //M888: check homing status
+        gcode_M888();
+        break;
+
+      case 889: //M889: power off
+        gcode_M889();
+        break;
+
+      case 988: //M889: baby stepping
+        gcode_M988();
+        break;
+        
+        
     }
     break;
 
@@ -9790,7 +9984,8 @@ void prepare_move_to_destination() {
       HOTEND_LOOP() {
         max_temp = MAX3(max_temp, thermalManager.degHotend(e), thermalManager.degTargetHotend(e));
       }
-      bool new_led = (max_temp > 55.0) ? true : (max_temp < 54.0) ? false : red_led;
+      bool new_led = (max_temp > 55.0) ? true : (max_temp < 50.0) ? false : red_led;
+
       if (new_led != red_led) {
         red_led = new_led;
         #if PIN_EXISTS(STAT_LED_RED)
@@ -9801,6 +9996,10 @@ void prepare_move_to_destination() {
         #else
           WRITE(STAT_LED_BLUE_PIN, new_led ? HIGH : LOW);
         #endif
+        if (! red_led ) {
+          enqueue_and_echo_commands_P(PSTR("M889 C0")); //switch off coolin fan
+          SERIAL_PROTOCOLLN("//action:cooled");
+        }
       }
     }
   }
@@ -10106,7 +10305,9 @@ void idle(
     bool no_stepper_sleep/*=false*/
   #endif
 ) {
-  lcd_update();
+  #if ENABLED(ULTIPANEL)
+    lcd_update(); 
+  #endif
 
   host_keepalive();
 
@@ -10341,6 +10542,19 @@ void setup() {
     i2c.onReceive(i2c_on_receive);
     i2c.onRequest(i2c_on_request);
   #endif
+  
+  #if ENABLED(BABYSTEPPING)
+    setup_babystep_pins();
+  #endif
+
+  SERIAL_ECHOPAIR("//action:firmware ", EXTRUDERS);
+  #if ENABLED(SINGLENOZZLE)
+    SERIAL_ECHOPGM(" 1");
+  #else
+    SERIAL_ECHOPAIR(" ", EXTRUDERS);
+  #endif
+  SERIAL_EOL;
+
 
   #if ENABLED(ENDSTOP_INTERRUPTS_FEATURE)
     setup_endstop_interrupts();
@@ -10363,7 +10577,11 @@ void loop() {
   #if ENABLED(SDSUPPORT)
     card.checkautostart(false);
   #endif
-
+  
+  #if ENABLED(BABYSTEPPING)
+    if (allow_baby_stepping) babystep_update();  
+  #endif
+  
   if (commands_in_queue) {
 
     #if ENABLED(SDSUPPORT)
