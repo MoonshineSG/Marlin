@@ -7076,20 +7076,21 @@ void quickstop_stepper() {
       if (code_seen('Z')) set_z_fade_height(code_value_linear_units());
     #endif
 
-    if (to_enable && !(
+    const bool new_status =
       #if ENABLED(MESH_BED_LEVELING)
         mbl.active()
       #else
         planner.abl_enabled
       #endif
-    ) ) {
-      to_enable = false;
+    ;
+
+    if (to_enable && !new_status) {
       SERIAL_ERROR_START;
       SERIAL_ERRORLNPGM(MSG_ERR_M420_FAILED);
     }
 
     SERIAL_ECHO_START;
-    SERIAL_ECHOLNPAIR("Bed Leveling ", to_enable ? MSG_ON : MSG_OFF);
+    SERIAL_ECHOLNPAIR("Bed Leveling ", new_status ? MSG_ON : MSG_OFF);
 
     // V to print the matrix or mesh
     if (code_seen('V')) {
@@ -7640,22 +7641,27 @@ inline void gcode_M907() {
     analogWrite(CASE_LIGHT_PIN, case_light_on != INVERT_CASE_LIGHT ? case_light_brightness : 0);
   }
 
-  /**
-   * M355: Turn case lights on/off and set brightness
-   *
-   *   S<bool>  Turn case light on or off
-   *   P<byte>  Set case light brightness (PWM pin required)
-   */
-  inline void gcode_M355() {
+#endif // HAS_CASE_LIGHT
+
+/**
+ * M355: Turn case lights on/off and set brightness
+ *
+ *   S<bool>  Turn case light on or off
+ *   P<byte>  Set case light brightness (PWM pin required)
+ */
+inline void gcode_M355() {
+  #if HAS_CASE_LIGHT
     if (code_seen('P')) case_light_brightness = code_value_byte();
     if (code_seen('S')) case_light_on = code_value_bool();
     update_case_light();
     SERIAL_ECHO_START;
     SERIAL_ECHOPGM("Case lights ");
     case_light_on ? SERIAL_ECHOLNPGM("on") : SERIAL_ECHOLNPGM("off");
-  }
-
-#endif // HAS_CASE_LIGHT
+  #else
+    SERIAL_ERROR_START;
+    SERIAL_ERRORLNPGM(MSG_ERR_M355_NONE);
+  #endif // HAS_CASE_LIGHT
+}
 
 #if ENABLED(MIXING_EXTRUDER)
 
@@ -8926,13 +8932,9 @@ void process_next_command() {
 
       #endif // HAS_MICROSTEPS
 
-      #if HAS_CASE_LIGHT
-
-        case 355: // M355 Turn case lights on/off
-          gcode_M355();
-          break;
-
-      #endif // HAS_CASE_LIGHT
+      case 355: // M355 Turn case lights on/off
+        gcode_M355();
+        break;
 
       case 999: // M999: Restart after being Stopped
         gcode_M999();
