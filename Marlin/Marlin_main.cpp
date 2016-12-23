@@ -7725,52 +7725,11 @@ inline void gcode_M355() {
 * M808: send action message
 */
 inline void gcode_M808() {
-  stepper.synchronize();
-  refresh_cmd_timeout();
+  //stepper.synchronize();
+  //refresh_cmd_timeout();
   SERIAL_PROTOCOLPGM("//action:");
   SERIAL_PROTOCOLLN(current_command_args);
 }    
-
-
-inline void gcode_M888() {
-    
-	if (!axis_known_position[X_AXIS] || !axis_known_position[Y_AXIS] || !axis_known_position[Z_AXIS] ) {
-	    SERIAL_ECHO("Unknown position : [");
-		if (!axis_known_position[X_AXIS]) SERIAL_CHAR("x");
-		if (!axis_known_position[Y_AXIS]) SERIAL_CHAR("y");
-        if (!axis_known_position[Z_AXIS]) SERIAL_CHAR("z");
-	    SERIAL_ECHOLN("]");
-	} else {
-		SERIAL_ECHOLN("All axes are known.");
-	}
-
-	if (!axis_homed[X_AXIS] || !axis_homed[Y_AXIS] || !axis_homed[Z_AXIS] ) {
-	    SERIAL_ECHO("Axes needing home : [");
-		if (!axis_homed[X_AXIS]) SERIAL_CHAR("x");
-		if (!axis_homed[Y_AXIS]) SERIAL_CHAR("y");
-        if (!axis_homed[Z_AXIS]) SERIAL_CHAR("z");
-	    SERIAL_ECHOLN("]");
-	} else {
-		SERIAL_ECHOLN("All axes are homed.");
-	}
-
-  /**planner.bed_level_matrix.debug("\nCurrent bed level matix");
-    
-	bool z_ok = false;
-	if ( planner.bed_level_matrix.matrix[0] != 1 || planner.bed_level_matrix.matrix[4] != 1 || planner.bed_level_matrix.matrix[8] != 1 ||
-		planner.bed_level_matrix.matrix[1] != 0 || planner.bed_level_matrix.matrix[2] != 0 || planner.bed_level_matrix.matrix[3] != 0 ||
-	planner.bed_level_matrix.matrix[5] != 0 || planner.bed_level_matrix.matrix[6] != 0 || planner.bed_level_matrix.matrix[7] != 0 ) {
-		z_ok = true;
-	} 
-
-    if (!z_ok) {
-      SERIAL_ECHOLN("bed leveling needed.");
-      if (code_seen('E')) {
-        enqueue_and_echo_commands_P(PSTR("G28\nG29 P3 V4 T"));
-      }
-    }
-   */ 
-}  
 
 /*
 M889 - turn off everyting
@@ -8942,10 +8901,6 @@ void process_next_command() {
 
       case 808: //M808: send custom actions
         gcode_M808();
-        break;
-
-      case 888: //M888: check homing status
-        gcode_M888();
         break;
 
       case 889: //M889: power off
