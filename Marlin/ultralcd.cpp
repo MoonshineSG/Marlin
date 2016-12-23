@@ -829,7 +829,7 @@ void kill_screen(const char* lcd_msg) {
 
   #if ENABLED(FILAMENT_CHANGE_FEATURE)
     void lcd_enqueue_filament_change() {
-      if (thermalManager.tooColdToExtrude(active_extruder)) {
+      if (!DEBUGGING(DRYRUN) && thermalManager.tooColdToExtrude(active_extruder)) {
         lcd_save_previous_screen();
         lcd_goto_screen(lcd_filament_change_toocold_menu);
         return;
@@ -3090,6 +3090,7 @@ void lcd_update() {
           drawing_screen = 1;
         }
         lcd_setFont(FONT_MENU);
+        u8g.setColorIndex(1);
         CURRENTSCREEN();
         if (drawing_screen && (drawing_screen = u8g.nextPage())) {
           NOLESS(max_display_update_time, millis() - ms);

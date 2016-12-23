@@ -33,6 +33,8 @@
 #define MAPPER_C2C3
 #define DISPLAY_CHARSET_ISO10646_1
 
+#define THIS_LANGUAGES_SPECIAL_SYMBOLS      _UxGT("ÄäÖöÜüß²³")
+
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" bereit")
 #define MSG_SD_INSERTED                     _UxGT("SD-Karte erkannt")
 #define MSG_SD_REMOVED                      _UxGT("SD-Karte entfernt")
@@ -181,6 +183,8 @@
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibriere Y")
 #define MSG_DELTA_CALIBRATE_Z               _UxGT("Kalibriere Z")
 #define MSG_DELTA_CALIBRATE_CENTER          _UxGT("Kalibriere Mitte")
+#define MSG_DEBUG_MENU                      _UxGT("Debug Menu")
+#define MSG_PROGRESS_BAR_TEST               _UxGT("Fortschrittb. Test")
 
 #define MSG_INFO_MENU                       _UxGT("Über den Drucker")
 #define MSG_INFO_PRINTER_MENU               _UxGT("Drucker Info")
@@ -246,7 +250,7 @@
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Laden und Klick")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Laden...")
   #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Extrudieren...")
-  #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Weitermachen...")
+  #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Fortsetzen...")
 #endif // LCD_HEIGHT < 4
 
 #endif // LANGUAGE_DE_H
