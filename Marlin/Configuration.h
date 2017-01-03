@@ -144,7 +144,7 @@
 
 // This defines the number of extruders
 // :[1,2,3,4]
-#define EXTRUDERS 1
+#define EXTRUDERS 2
 
 #if EXTRUDERS == 1 && ENABLED(SINGLENOZZLE)
   #undef SINGLENOZZLE
