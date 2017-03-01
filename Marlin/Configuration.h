@@ -146,6 +146,11 @@
 // :[1,2,3,4]
 #define EXTRUDERS 2
 
+#if ENABLED(DIRECT_EXTRUDER)
+  #undef EXTRUDERS
+  #define EXTRUDERS 1
+#endif
+
 #if EXTRUDERS == 1 && ENABLED(SINGLENOZZLE)
   #undef SINGLENOZZLE
 #endif
@@ -184,7 +189,7 @@
 // For the other hotends it is their distance from the extruder 0 hotend.
 #define MIDDLE_NOZZLE 9
 
-#if DISABLED(SINGLENOZZLE)
+#if DISABLED(SINGLENOZZLE) && DISABLED(DIRECT_EXTRUDER)
 	#define HOTEND_OFFSET_X {0.0, MIDDLE_NOZZLE * 2} // (in mm) for each extruder, offset of the hotend on the X axis
 	#define HOTEND_OFFSET_Y {0.0, 0.00}  // (in mm) for each extruder, offset of the hotend on the Y axis
 #endif
@@ -611,6 +616,8 @@
 //  (0,0)
 #if ENABLED(SINGLENOZZLE)
 	#define X_PROBE_OFFSET_FROM_EXTRUDER 54 - MIDDLE_NOZZLE // X offset: -left  +right  [of the nozzle]
+#elif ENABLED(DIRECT_EXTRUDER)
+	#define X_PROBE_OFFSET_FROM_EXTRUDER -54  // X offset: -left  +right  [of the nozzle]
 #else
 	#define X_PROBE_OFFSET_FROM_EXTRUDER 54  // X offset: -left  +right  [of the nozzle]
 #endif
@@ -757,6 +764,8 @@
 // @section machine
 #if ENABLED(SINGLENOZZLE)
 	#define X_GAP 40 + MIDDLE_NOZZLE
+#elif ENABLED(DIRECT_EXTRUDER)
+  #define X_GAP 4
 #else
 	#define X_GAP 40
 #endif
