@@ -146,10 +146,12 @@
 // :[1,2,3,4]
 #define EXTRUDERS 2
 
+/*
 #if ENABLED(DIRECT_EXTRUDER)
   #undef EXTRUDERS
   #define EXTRUDERS 1
 #endif
+*/
 
 #if EXTRUDERS == 1 && ENABLED(SINGLENOZZLE)
   #undef SINGLENOZZLE
@@ -189,7 +191,7 @@
 // For the other hotends it is their distance from the extruder 0 hotend.
 #define MIDDLE_NOZZLE 9
 
-#if DISABLED(SINGLENOZZLE) && DISABLED(DIRECT_EXTRUDER)
+#if DISABLED(SINGLENOZZLE) //&& DISABLED(DIRECT_EXTRUDER)
 	#define HOTEND_OFFSET_X {0.0, MIDDLE_NOZZLE * 2} // (in mm) for each extruder, offset of the hotend on the X axis
 	#define HOTEND_OFFSET_Y {0.0, 0.00}  // (in mm) for each extruder, offset of the hotend on the Y axis
 #endif
@@ -521,15 +523,15 @@
 
 
 // @ 1/16 step
-#define Z_AXIS_STEPS_PER_UNIT 400.0
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80.0, 80.0, Z_AXIS_STEPS_PER_UNIT, 425}
+#define Z_AXIS_STEPS_PER_UNIT 401.17
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80.0, 80.5, Z_AXIS_STEPS_PER_UNIT, 425}
 
 /**
  * Default Max Feed Rate (mm/s)
  * Override with M203
  *                                      X, Y, Z, E0 [, E1[, E2[, E3]]]
  */
-#define DEFAULT_MAX_FEEDRATE          { 200, 200, 50, 50 }
+#define DEFAULT_MAX_FEEDRATE          { 200, 200, 40, 100 }
 
 /**
  * Default Max Acceleration (change/s) change = mm/s
@@ -537,7 +539,7 @@
  * Override with M201
  *                                      X, Y, Z, E0 [, E1[, E2[, E3]]]
  */
-#define DEFAULT_MAX_ACCELERATION      { 3000, 3000, 100, 1000 }
+#define DEFAULT_MAX_ACCELERATION      { 3000, 3000, 150, 2000 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -547,9 +549,9 @@
  *   M204 R    Retract Acceleration
  *   M204 T    Travel Acceleration
  */
-#define DEFAULT_ACCELERATION          950    // X, Y, Z and E acceleration for printing moves
-#define DEFAULT_RETRACT_ACCELERATION  950    // E acceleration for retracts
-#define DEFAULT_TRAVEL_ACCELERATION   950    // X, Y, Z acceleration for travel (non printing) moves
+#define DEFAULT_ACCELERATION          1200    // X, Y, Z and E acceleration for printing moves
+#define DEFAULT_RETRACT_ACCELERATION  2000    // E acceleration for retracts
+#define DEFAULT_TRAVEL_ACCELERATION   1600    // X, Y, Z acceleration for travel (non printing) moves
 
 /**
  * Default Jerk (mm/s)
@@ -559,10 +561,10 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-#define DEFAULT_XJERK                  10.0
-#define DEFAULT_YJERK                  10.0
-#define DEFAULT_ZJERK                  0.4
-#define DEFAULT_EJERK                  5
+#define DEFAULT_XJERK                  5.0
+#define DEFAULT_YJERK                  5.0
+#define DEFAULT_ZJERK                  0.5
+#define DEFAULT_EJERK                 10.0
 
 //===========================================================================
 //============================= Z Probe Options =============================
@@ -616,8 +618,8 @@
 //  (0,0)
 #if ENABLED(SINGLENOZZLE)
 	#define X_PROBE_OFFSET_FROM_EXTRUDER 54 - MIDDLE_NOZZLE // X offset: -left  +right  [of the nozzle]
-#elif ENABLED(DIRECT_EXTRUDER)
-	#define X_PROBE_OFFSET_FROM_EXTRUDER -54  // X offset: -left  +right  [of the nozzle]
+//#elif ENABLED(DIRECT_EXTRUDER)
+//	#define X_PROBE_OFFSET_FROM_EXTRUDER -54  // X offset: -left  +right  [of the nozzle]
 #else
 	#define X_PROBE_OFFSET_FROM_EXTRUDER 54  // X offset: -left  +right  [of the nozzle]
 #endif
@@ -764,14 +766,14 @@
 // @section machine
 #if ENABLED(SINGLENOZZLE)
 	#define X_GAP 40 + MIDDLE_NOZZLE
-#elif ENABLED(DIRECT_EXTRUDER)
-  #define X_GAP 4
+//#elif ENABLED(DIRECT_EXTRUDER)
+//  #define X_GAP 4
 #else
 	#define X_GAP 40
 #endif
 	
 // Travel limits after homing (units are in mm)
-#define X_MIN_POS -X_GAP
+#define X_MIN_POS - X_GAP
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
 #define X_MAX_POS 210
