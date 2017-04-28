@@ -523,8 +523,8 @@
 
 
 // @ 1/16 step
-#define Z_AXIS_STEPS_PER_UNIT 401.17
-#define DEFAULT_AXIS_STEPS_PER_UNIT   { 80.0, 80.5, Z_AXIS_STEPS_PER_UNIT, 425}
+#define Z_AXIS_STEPS_PER_UNIT 400.0
+#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100.0, 100.0, Z_AXIS_STEPS_PER_UNIT, 425.0}
 
 /**
  * Default Max Feed Rate (mm/s)
@@ -561,10 +561,10 @@
  * When changing speed and direction, if the difference is less than the
  * value set here, it may happen instantaneously.
  */
-#define DEFAULT_XJERK                  5.0
-#define DEFAULT_YJERK                  5.0
-#define DEFAULT_ZJERK                  0.5
-#define DEFAULT_EJERK                 10.0
+#define DEFAULT_XJERK                 10.0
+#define DEFAULT_YJERK                 10.0
+#define DEFAULT_ZJERK                  0.2
+#define DEFAULT_EJERK                  5.0
 
 //===========================================================================
 //============================= Z Probe Options =============================

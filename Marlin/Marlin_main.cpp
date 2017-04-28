@@ -959,7 +959,8 @@ void servo_init() {
       thermalManager.babystepsTodo[Z_AXIS]+=BABYSTEP_MULTIPLICATOR;
       babystep_switch_up = true;      
       SERIAL_ECHOLN("//action:baby_up");
-      float value = zprobe_zoffset + (Z_AXIS_STEPS_PER_UNIT / BABYSTEP_MULTIPLICATOR);
+
+      float value = zprobe_zoffset + ( BABYSTEP_MULTIPLICATOR / Z_AXIS_STEPS_PER_UNIT ) ;
       if (Z_PROBE_OFFSET_RANGE_MIN <= value && value <= Z_PROBE_OFFSET_RANGE_MAX) {
         zprobe_zoffset = value;
         SERIAL_ECHOLNPAIR("echo:Z Offset : ", zprobe_zoffset);
@@ -973,7 +974,7 @@ void servo_init() {
       thermalManager.babystepsTodo[Z_AXIS]-=BABYSTEP_MULTIPLICATOR;
       babystep_switch_down = true;
       SERIAL_ECHOLN("//action:baby_down");
-      float value = zprobe_zoffset - (Z_AXIS_STEPS_PER_UNIT / BABYSTEP_MULTIPLICATOR);
+      float value = zprobe_zoffset - ( BABYSTEP_MULTIPLICATOR / Z_AXIS_STEPS_PER_UNIT ) ;
       if (Z_PROBE_OFFSET_RANGE_MIN <= value && value <= Z_PROBE_OFFSET_RANGE_MAX) {
         zprobe_zoffset = value;
         SERIAL_ECHOLNPAIR("echo:Z Offset : ", zprobe_zoffset);
