@@ -42,13 +42,6 @@
 #define Z_STOP_PIN         20
 
 //
-// Z Probe (when not Z_MIN_PIN)
-//
-#if ENABLED(Z_PROBE_SLED)
-  #define SLED_PIN         -1
-#endif
-
-//
 // Steppers
 //
 #define X_STEP_PIN         15
@@ -188,10 +181,13 @@
     #else
       #define BTN_ENC           30
     #endif
-  #else  // !Panelolu2
+  #elif ENABLED(OLED_PANEL_TINYBOY2)
+    #define BTN_ENC             28
+    #define LCD_SDSS            -1
+  #else  // !Panelolu2, !TinyBoy2
     #define BTN_ENC             16
     #define LCD_SDSS            28 // Smart Controller SD card reader rather than the Melzi
-  #endif // !Panelolu2
+  #endif // !Panelolu2, !TinyBoy2
 
   #define SD_DETECT_PIN         -1
 

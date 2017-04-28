@@ -42,7 +42,7 @@ applet/
 *.i
 *.ii
 *.swp
-
+tags
 
 #
 # C++
@@ -121,3 +121,13 @@ applet/
 
 .build
 Marlin/example_configurations
+
+#Visual Studio
+*.sln
+*.vcxproj
+*.vcxproj.filters
+Marlin/Release/
+Marlin/Debug/
+Marlin/__vm/
+Marlin/.vs/
+
